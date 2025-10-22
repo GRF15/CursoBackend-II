@@ -6,12 +6,12 @@ You are an expert back-end developer with a deep specialization in Node.js and t
 
 ## 2. Project Context
 
-This project is a back-end application or API built with Node.js and the Express framework. The focus is on creating a secure, performant, and well-structured server-side application. Assume the project uses modern JavaScript (ES6+) or TypeScript.
+This project is an estudent prooyect used to learn DISEÑO Y ARQUITECTURA BACKEND, this proyect is a back-end API built with Node.js and the Express framework. The focus is on creating a secure, performant, and well-structured server-side application. Assume the project uses modern JavaScript.
 
 ## 3. Coding Standards & Best Practices
-
+install all needed dependences 
 ### General
-- **Language:** Use modern JavaScript (ES6+) or TypeScript, depending on the project's configuration.
+- **Language:** Use modern JavaScript (ES6+).
 - **Asynchronous Operations:** Always use `async/await` for asynchronous code to improve readability and error handling.
 - **Dependencies:** After suggesting new npm dependencies, remind the user to run `npm install`. Regularly audit dependencies for vulnerabilities using `npm audit`.
 - **Testing:** Encourage the use of a testing framework like Jest or Mocha, and a library like Supertest for testing API endpoints.
@@ -56,60 +56,91 @@ Make sure to add `.env` to your `.gitignore` file to keep it out of version cont
 Here is a complete example of how to add a new route to your Express app that uses the Gemini API to generate content based on a user's prompt.
 
 **File: `index.js` (or your main server file)**
-```javascript
-// Load environment variables from .env file
-require('dotenv').config();
+```javascript 
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import engine from 'express-handlebars';
+import path from 'path';
+import mongoose from 'mongoose';
 
-const express = require('express');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import productsRouter from './routes/products.router.js';
+import cartsRouter from './routes/carts.router.js';
+import viewsRouter from './routes/views.router.js';
+import Products from './models/product.model.js';
 
 const app = express();
-// Middleware to parse JSON request bodies
+const httpServer = createServer(app);
+const io = new Server(httpServer);
+
+// Conexión a MongoDB
+mongoose.connect('mongodb+srv://@clustercoderbakend1.zxrjerd.mongodb.net/ecommerce?retryWrites=true&w=majority')
+  .then(() => console.log('✅ Conectado a MongoDB'))
+  .catch(error => console.error('❌ Error al conectar a MongoDB:', error));
+
+const PORT = 8080;
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer);
+
+app.engine('handlebars', engine({helpers: {ifEquals: (a, b, options) => (a == b ? options.fn(this) : options.inverse(this))}}));
+app.set('view engine', 'handlebars');
+app.set('views', path.join(__dirname, 'views'));
+
+
+// Middlewares
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Check for API key on startup
-if (!process.env.GEMINI_API_KEY) {
-  throw new Error('GEMINI_API_KEY environment variable is not set.');
-}
+// Rutas
+app.use('/api/products', productsRouter);
+app.use('/api/carts', cartsRouter);
+app.use('/', viewsRouter);
 
-// Initialize the Google AI client with the API key
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Compartir io en la app para usarlo en routers
+app.set('io', io);
 
-// Define a POST route to handle content generation
-app.post('/api/generate', async (req, res) => {
-  try {
-    const { prompt } = req.body;
+// Socket.io con Mongoose
+io.on('connection', async (socket) => {
+  console.log(`Nuevo socket conectado: ${socket.id}`);
 
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
+  // Enviar productos actuales
+  const products = await Product.find().lean();
+  socket.emit('products', products);
+
+  // Agregar producto
+  socket.on('addProduct', async (data) => {
+    try {
+      await Product.create(data);
+      const updatedProducts = await Product.find().lean();
+      io.emit('products', updatedProducts);
+    } catch (error) {
+      socket.emit('error', error.message);
     }
+  });
 
-    // Use a recent, powerful model
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+  // Eliminar producto
+  socket.on('deleteProduct', async (id) => {
+    try {
+      await Product.findByIdAndDelete(id);
+      const updatedProducts = await Product.find().lean();
+      io.emit('products', updatedProducts);
+    } catch (error) {
+      socket.emit('error', error.message);
+    }
+  });
 
-    // Send the generated text back to the client
-    res.json({ generatedText: text });
-  } catch (error) {
-    console.error('Error calling Gemini API:', error);
-    res.status(500).json({ error: 'Failed to generate content' });
-  }
+  socket.on('disconnect', () => {
+    console.log('Socket desconectado');
+  });
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Server corriendo en http://localhost:${PORT}`);
 });
-```
 
-**4. How to Test the Endpoint:**
-You can use a tool like `curl` to test your new endpoint:
-```bash
-curl -X POST http://localhost:3000/api/generate \
--H "Content-Type: application/json" \
--d '{"prompt": "Write a short poem about Node.js"}'
+export default app, io;
 ```
 
 This setup provides a secure and efficient way to add generative AI capabilities to your Node.js and Express backend.

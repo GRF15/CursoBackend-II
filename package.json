@@ -1,6 +1,6 @@
 {
-  "name": "node-express-api",
-  "description": "Simple api sample in Node",
+  "name": "curso-backend-2",
+  "description": "",
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
@@ -9,10 +9,21 @@
     "dev": "nodemon index.js",
     "start": "node index.js"
   },
-  "author": "Google LLC",
+  "author": "GRF15",
   "license": "Apache-2.0",
   "dependencies": {
-    "express": "^4.21.2"
+    "bcrypt": "^6.0.0",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "express-handlebars": "^8.0.3",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
