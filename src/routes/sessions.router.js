@@ -12,6 +12,6 @@ router.post('/register', register);
 router.post('/login', login);
 
 // Ruta para obtener los datos del usuario actual, protegida por Passport
-router.get('/current', passport.authenticate('current', { session: false }), current);
+router.get('/current', passport.authenticate('jwt', { session: false }), current);
 
 export default router;

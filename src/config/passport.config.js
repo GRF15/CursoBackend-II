@@ -1,13 +1,21 @@
-// Importa Passport, la estrategia de JWT y el nuevo UserManager
+/**
+ * @file Configura las estrategias de autenticación de Passport.
+ * @module config/passport.config
+ */
+
 import passport from 'passport';
 import jwt from 'passport-jwt';
-import UserManager from '../dao/mongo/user.manager.js'; // Se importa el manager
+import UserManager from '../dao/mongo/user.manager.js';
 
 const EstrategiaJWT = jwt.Strategy;
 const ExtraerJWT = jwt.ExtractJwt;
-const userManager = new UserManager(); // Se crea una instancia del manager
+const userManager = new UserManager();
 
-// Función para extraer el token de las cookies
+/**
+ * Extrae el token JWT desde una cookie en la solicitud.
+ * @param {object} solicitud - El objeto de solicitud de Express.
+ * @returns {string|null} El token JWT o null si no se encuentra.
+ */
 const extractorDeCookies = (solicitud) => {
     let token = null;
     if (solicitud && solicitud.cookies) {
@@ -16,15 +24,19 @@ const extractorDeCookies = (solicitud) => {
     return token;
 };
 
-// Función para inicializar las estrategias de Passport
+/**
+ * Inicializa y configura las estrategias de Passport.
+ */
 const inicializarPassport = () => {
-    // Estrategia 'jwt' para autenticación general basada en token
+    /**
+     * Estrategia JWT para autenticar usuarios a través de un token en el encabezado.
+     * Verifica la firma del token y busca al usuario en la base de datos.
+     */
     passport.use('jwt', new EstrategiaJWT({
         jwtFromRequest: ExtraerJWT.fromAuthHeaderAsBearerToken(),
         secretOrKey: process.env.JWT_SECRET
     }, async (payloadDelJWT, done) => {
         try {
-            // Utiliza el UserManager para buscar al usuario por ID
             const usuario = await userManager.findById(payloadDelJWT.id);
             if (usuario) {
                 return done(null, usuario);
@@ -35,14 +47,15 @@ const inicializarPassport = () => {
         }
     }));
 
-    // Estrategia 'current' para obtener los datos del usuario desde la cookie
+    /**
+     * Estrategia 'current' para validar un usuario a partir de un token JWT en una cookie.
+     * Extrae los datos del payload del token para crear un DTO del usuario sin consultar la BD.
+     */
     passport.use('current', new EstrategiaJWT({
         jwtFromRequest: ExtraerJWT.fromExtractors([extractorDeCookies]),
         secretOrKey: process.env.JWT_SECRET
     }, async (payloadDelJWT, done) => {
         try {
-            // No se necesita una consulta a la base de datos, los datos ya están en el token.
-            // Esto es más eficiente y crea un DTO (Data Transfer Object) del usuario.
             const usuarioDTO = {
                 id: payloadDelJWT.id,
                 role: payloadDelJWT.role,

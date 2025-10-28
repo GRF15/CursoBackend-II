@@ -1,27 +1,34 @@
-// Importa el modelo de usuario para interactuar con la base de datos
+/**
+ * @file Manager para gestionar las operaciones de base de datos de usuarios.
+ * @module dao/mongo/user.manager
+ */
+
 import ModeloDeUsuario from './models/user.model.js';
 
-// Clase para gestionar las operaciones de la base de datos relacionadas con los usuarios
+/**
+ * Clase que encapsula la lógica de acceso a datos para los usuarios.
+ */
 export default class UserManager {
     /**
-     * Busca un usuario en la base de datos según un criterio de búsqueda.
-     * @param {object} query - El criterio de búsqueda para Mongoose (ej. { email: '...' }).
-     * @returns {Promise<object|null>} - El documento del usuario o null si no se encuentra.
+     * Busca un único usuario que coincida con un criterio.
+     * @param {object} query - Criterio de búsqueda para Mongoose.
+     * @returns {Promise<object|null>} El usuario encontrado o null.
      */
     async findOne(query) {
         try {
-            const usuario = await ModeloDeUsuario.findOne(query).lean(); // Usamos .lean() para obtener un objeto JS plano
+            // .lean() devuelve un objeto JavaScript simple en lugar de un documento de Mongoose.
+            const usuario = await ModeloDeUsuario.findOne(query).lean();
             return usuario;
         } catch (error) {
             console.error("Error al buscar usuario en la base de datos:", error);
-            throw error; // Propaga el error para que sea manejado en la capa superior
+            throw error;
         }
     }
 
     /**
      * Crea un nuevo usuario en la base de datos.
-     * @param {object} data - Los datos del usuario a crear.
-     * @returns {Promise<object>} - El nuevo usuario creado.
+     * @param {object} data - Datos del usuario a crear.
+     * @returns {Promise<object>} El nuevo usuario creado.
      */
     async create(data) {
         try {
@@ -36,7 +43,7 @@ export default class UserManager {
     /**
      * Busca un usuario por su ID.
      * @param {string} id - El ID del usuario.
-     * @returns {Promise<object|null>} - El documento del usuario o null si no se encuentra.
+     * @returns {Promise<object|null>} El usuario encontrado o null.
      */
     async findById(id) {
         try {

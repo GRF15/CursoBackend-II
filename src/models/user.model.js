@@ -1,32 +1,36 @@
-// Importa mongoose para definir el esquema y el modelo
+/**
+ * @file Define el esquema y modelo de Mongoose para los usuarios.
+ * @module models/user.model
+ */
+
 import mongoose from 'mongoose';
 
-// Define el nombre de la colección en la base de datos
 const coleccionDeUsuarios = 'users';
 
-// Define el esquema para los usuarios
+/**
+ * @typedef {object} UserSchema
+ * @property {string} first_name - Nombre del usuario (requerido).
+ * @property {string} last_name - Apellido del usuario (requerido).
+ * @property {string} email - Correo electrónico único del usuario (requerido).
+ * @property {number} age - Edad del usuario (requerida).
+ * @property {string} password - Contraseña del usuario (requerida).
+ * @property {string} role - Rol del usuario (por defecto: 'user').
+ * @property {mongoose.Schema.Types.ObjectId} cart - Referencia al carrito del usuario.
+ */
+
 const esquemaDeUsuario = new mongoose.Schema({
-    // Nombre del usuario, es requerido
     first_name: { type: String, required: true },
-    // Apellido del usuario, es requerido
     last_name: { type: String, required: true },
-    // Correo electrónico del usuario, es único y requerido
     email: { type: String, unique: true, required: true },
-    // Edad del usuario, es requerida
     age: { type: Number, required: true },
-    // Contraseña del usuario, es requerida
     password: { type: String, required: true },
-    // Rol del usuario, por defecto es 'user'
     role: { type: String, default: 'user' },
-    // Carrito asociado al usuario, se relaciona con la colección 'carts'
     cart: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'carts'
     }
 });
 
-// Crea el modelo de usuario a partir del esquema
 const ModeloDeUsuario = mongoose.model(coleccionDeUsuarios, esquemaDeUsuario);
 
-// Exporta el modelo de usuario para usarlo en otras partes de la aplicación
 export default ModeloDeUsuario;
