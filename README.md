@@ -12,7 +12,7 @@ Este es el backend de una aplicación de e-commerce desarrollada con Node.js, Ex
 
 ## Instalación
 
-1. Clona el repositorio:
+1. Clona el repositorio: 
    ```bash
    git clone <URL_DEL_REPOSITORIO>
    ```
