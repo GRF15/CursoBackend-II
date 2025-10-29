@@ -6,10 +6,16 @@
 import passport from 'passport';
 import jwt from 'passport-jwt';
 import UserManager from '../dao/mongo/user.manager.js';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const EstrategiaJWT = jwt.Strategy;
 const ExtraerJWT = jwt.ExtractJwt;
 const userManager = new UserManager();
+
+const secretOrKey = process.env.JWT_SECRET || 'mi_clave_secreta_default';
 
 /**
  * Extrae el token JWT desde una cookie en la solicitud.
@@ -34,7 +40,7 @@ const inicializarPassport = () => {
      */
     passport.use('jwt', new EstrategiaJWT({
         jwtFromRequest: ExtraerJWT.fromAuthHeaderAsBearerToken(),
-        secretOrKey: process.env.JWT_SECRET
+        secretOrKey
     }, async (payloadDelJWT, done) => {
         try {
             const usuario = await userManager.findById(payloadDelJWT.id);
@@ -53,7 +59,7 @@ const inicializarPassport = () => {
      */
     passport.use('current', new EstrategiaJWT({
         jwtFromRequest: ExtraerJWT.fromExtractors([extractorDeCookies]),
-        secretOrKey: process.env.JWT_SECRET
+        secretOrKey
     }, async (payloadDelJWT, done) => {
         try {
             const usuarioDTO = {
